@@ -3,12 +3,13 @@ The MVP: A command line tool written in Java that sends HTTP requests to a targe
 The CLI's expected behavior:
 
 Core command
+
 jgrip http http://localhost:8080/api/orders \
     --requests 10000 \
     --concurrency 50
+    
 And it produces something like:
 J-GRIP
-────────────────────────────────────
 
 TARGET
   http://localhost:8080/api/orders
@@ -38,8 +39,8 @@ ERROR RATE
   1.46%
 
 DIAGNOSTICS
-  ⚠ p99 latency is significantly above p50
-  ⚠ 45 server errors detected
+   p99 latency is significantly above p50
+   45 server errors detected
 
 RESULT
   Possible service saturation
