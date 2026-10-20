@@ -9,10 +9,7 @@ import java.util.concurrent.TimeUnit;
 public class Jgrip{
     public static void main(String[] args) throws Exception
     {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Enter the username:");
-        String username= sc.next();
-        final String BASE_URL="https://api.github.com/users/"+username+"/events";
+        final String BASE_URL="https://jsonplaceholder.typicode.com";
         URI uri = URI.create(BASE_URL);
         HttpRequest.Builder builder =  HttpRequest.newBuilder();
         builder.uri(uri);
@@ -21,15 +18,44 @@ public class Jgrip{
         HttpRequest request = builder.build();
 
         HttpClient client = HttpClient.newHttpClient();
+        int[] status= new int[100];
+        long[] latency= new long[100];
+        for(int i=0; i<100; i++)
+        {
+            long startTime = System.nanoTime();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            long endTime = System.nanoTime();
 
-        long startTime = System.nanoTime();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        long endTime = System.nanoTime();
+            long elapsedTime= endTime-startTime;
+            latency[i]= TimeUnit.NANOSECONDS.toMillis(elapsedTime);
+            status[i]= response.statusCode();
+        }
+        long sumLatency=0;
+        long max= 0;
+        long min= latency[0];
+        for(int j=0; j<100; j++)
+        {
+            if(latency[j]>max)
+                max=latency[j];
+            if (latency[j]<min)
+                min=latency[j];
+          sumLatency=sumLatency+latency[j];
+        }
+        double countSuccess=0;
+        for (int k=0; k<100; k++)
+        {
+            if(String.valueOf(status[k]).charAt(0)=='2' ||String.valueOf(status[k]).charAt(0)=='3')
+            {
+                countSuccess++;
+            }
+        }
 
-        long elapsedTime= endTime-startTime;
-        System.out.println(response.statusCode());
-        System.out.println(response.body());
-        System.out.println("Time taken to fetch the response:"+ TimeUnit.NANOSECONDS.toMillis(elapsedTime) + "ms");
+        System.out.println("Success Rate="+countSuccess/100);
+        System.out.println("Error Rate="+(100-countSuccess)/100);
+        System.out.println("Average Latency="+sumLatency/100+"ms");
+        System.out.println("Minimum Latency="+min);
+        System.out.println("Maximum Latency="+min);
+
     }
 
 
