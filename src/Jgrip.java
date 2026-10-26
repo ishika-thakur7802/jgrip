@@ -16,7 +16,8 @@ public class Jgrip{
         builder.timeout(Duration.ofMillis(5000));
         HttpRequest request = builder.build();
         HttpClient client = HttpClient.newHttpClient();
-        int totalRequests=100;
+        int totalRequests=10;
+        int attemptedRequests=0;
         int exceptionCount=0;
             int[] status = new int[totalRequests];
             long[] latency = new long[totalRequests];
@@ -27,12 +28,24 @@ public class Jgrip{
                     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                     endTime = System.nanoTime();
                     status[i] = response.statusCode();
+                    attemptedRequests++;
                 }
-                catch(IOException | InterruptedException e)
+                catch(IOException e)
                 {
                     endTime=System.nanoTime();
                     exceptionCount++;
                     status[i]= -1;
+                    attemptedRequests++;
+                }
+
+                catch (InterruptedException e1)
+                {
+                    Thread.currentThread().interrupt();
+                    exceptionCount++;
+                    attemptedRequests++;
+                    status[i]=-1;
+                    endTime=System.nanoTime();
+                    break;
                 }
 
                 finally {
@@ -40,10 +53,11 @@ public class Jgrip{
                     latency[i] = elapsedTime;
                 }
             }
+
             long sumLatency = 0;
             long max = 0;
-            long min = latency[0];
-            for (int j = 0; j < totalRequests; j++) {
+            long min = Long.MAX_VALUE;
+            for (int j = 0; j < attemptedRequests; j++) {
                 if (latency[j] > max)
                     max = latency[j];
                 if (latency[j] < min)
@@ -51,20 +65,36 @@ public class Jgrip{
                 sumLatency = sumLatency + latency[j];
             }
             double countSuccess = 0;
-            for (int k = 0; k < totalRequests; k++) {
+            double countFailed=0;
+            for (int k = 0; k < attemptedRequests; k++) {
                 if (status[k] >= 200 && status[k] < 300) {
                     countSuccess++;
+                }
+                else
+                {
+                    countFailed++;
                 }
             }
 
 
-
-            System.out.println("Success Rate=" + countSuccess / totalRequests * 100 + "%");
-            System.out.println("Error Rate=" + ((totalRequests - countSuccess) / totalRequests * 100 + "%"));
+            System.out.println("Total Requests Planned:"+totalRequests);
+            System.out.println("Requests Attempted:"+attemptedRequests);
+            System.out.println("Successful Requests:"+countSuccess);
+            System.out.println("Failed Requests:"+countFailed);
             System.out.println("Exceptions="+exceptionCount);
-            System.out.println("Average Latency=" + TimeUnit.NANOSECONDS.toMillis(sumLatency / totalRequests) + "ms");
-            System.out.println("Minimum Latency=" + TimeUnit.NANOSECONDS.toMillis(min) + "ms");
-            System.out.println("Maximum Latency=" + TimeUnit.NANOSECONDS.toMillis(max) + "ms");
+            System.out.println("Success Rate=" + countSuccess / attemptedRequests * 100 + "%");
+            System.out.println("Error Rate=" + countFailed / attemptedRequests * 100 + "%");
+
+            if(attemptedRequests>0)
+            {
+                System.out.println("Average Latency=" + TimeUnit.NANOSECONDS.toMillis(sumLatency / attemptedRequests) + "ms");
+                System.out.println("Minimum Latency=" + TimeUnit.NANOSECONDS.toMillis(min) + "ms");
+                System.out.println("Maximum Latency=" + TimeUnit.NANOSECONDS.toMillis(max) + "ms");
+            }
+            else {
+                System.out.println("no requests were completed");
+            }
+
 
 
     }
