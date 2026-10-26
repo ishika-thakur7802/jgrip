@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Jgrip{
     public static void main(String[] args)  {
-        final String BASE_URL = "https://jsonplaceholder.typicode.com";
+        final String BASE_URL = "https://httpbin.test.k6.io";
         URI uri = URI.create(BASE_URL);
         HttpRequest.Builder builder = HttpRequest.newBuilder();
         builder.uri(uri);
@@ -82,17 +82,17 @@ public class Jgrip{
             System.out.println("Successful Requests:"+countSuccess);
             System.out.println("Failed Requests:"+countFailed);
             System.out.println("Exceptions="+exceptionCount);
+        if(attemptedRequests>0) {
             System.out.println("Success Rate=" + countSuccess / attemptedRequests * 100 + "%");
             System.out.println("Error Rate=" + countFailed / attemptedRequests * 100 + "%");
 
-            if(attemptedRequests>0)
-            {
-                System.out.println("Average Latency=" + TimeUnit.NANOSECONDS.toMillis(sumLatency / attemptedRequests) + "ms");
-                System.out.println("Minimum Latency=" + TimeUnit.NANOSECONDS.toMillis(min) + "ms");
-                System.out.println("Maximum Latency=" + TimeUnit.NANOSECONDS.toMillis(max) + "ms");
-            }
+
+            System.out.println("Average Latency=" + TimeUnit.NANOSECONDS.toMillis(sumLatency / attemptedRequests) + "ms");
+            System.out.println("Minimum Latency=" + TimeUnit.NANOSECONDS.toMillis(min) + "ms");
+            System.out.println("Maximum Latency=" + TimeUnit.NANOSECONDS.toMillis(max) + "ms");
+        }
             else {
-                System.out.println("no requests were completed");
+                System.out.println("no requests were attempted");
             }
 
 
