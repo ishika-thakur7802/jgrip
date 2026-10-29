@@ -5,6 +5,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.io.*;
+import java.lang.Math;
 
 public class Jgrip{
     public static void main(String[] args)  {
@@ -54,14 +57,15 @@ public class Jgrip{
                     attemptedRequests++;
                     status[i] = -1;
                     endTime = System.nanoTime();
+                    System.out.println("Countered an InterruptedException");
                     break;
                 } finally {
                     long elapsedTime = endTime - startTime;
                     latency[i] = elapsedTime;
                 }
             }
-
-            long sumLatency = 0;
+            HashMap<Integer, Integer> frequency = new HashMap<>();
+            double sumLatency = 0;
             long max = 0;
             long min = Long.MAX_VALUE;
             for (int j = 0; j < attemptedRequests; j++) {
@@ -81,20 +85,33 @@ public class Jgrip{
                 }
             }
 
-
+            System.out.println("Target URL:"+args[0]);
             System.out.println("Total Requests Planned:" + totalRequests);
             System.out.println("Requests Attempted:" + attemptedRequests);
-            System.out.println("Successful Requests:" + countSuccess);
-            System.out.println("Failed Requests:" + countFailed);
-            System.out.println("Exceptions=" + exceptionCount);
+            System.out.println("\n RESULTS");
             if (attemptedRequests > 0) {
+                System.out.println("Successful Requests:" + countSuccess);
+                System.out.println("Failed Requests:" + countFailed);
+                System.out.println("Exceptions=" + exceptionCount);
                 System.out.println("Success Rate=" + countSuccess / attemptedRequests * 100 + "%");
                 System.out.println("Error Rate=" + countFailed / attemptedRequests * 100 + "%");
-
-
-                System.out.println("Average Latency=" + TimeUnit.NANOSECONDS.toMillis(sumLatency / attemptedRequests) + "ms");
-                System.out.println("Minimum Latency=" + TimeUnit.NANOSECONDS.toMillis(min) + "ms");
-                System.out.println("Maximum Latency=" + TimeUnit.NANOSECONDS.toMillis(max) + "ms");
+                System.out.println("HTTP STATUS CODES:");
+                for (int i: status)
+                {
+                    frequency.put(i, frequency.getOrDefault(i,0)+1);
+                }
+                for(Map.Entry<Integer,Integer> entry: frequency.entrySet())
+                {
+                    System.out.println(entry.getKey() +"="+ entry.getValue());
+                }
+                System.out.println("LATENCY");gi
+                System.out.println("Average=" + TimeUnit.NANOSECONDS.toMillis((long) (sumLatency / attemptedRequests)) + "ms");
+                System.out.println("Minimum=" + TimeUnit.NANOSECONDS.toMillis(min) + "ms");
+                System.out.println("Maximum=" + TimeUnit.NANOSECONDS.toMillis(max) + "ms");
+                Arrays.sort(latency);
+                System.out.println("p50=" + TimeUnit.NANOSECONDS.toMillis(latency[Math.toIntExact(Math.round(attemptedRequests * 0.50)-1)]) + "ms");
+                System.out.println("p95=" + TimeUnit.NANOSECONDS.toMillis(latency[Math.toIntExact(Math.round(attemptedRequests * 0.95))-1]) + "ms");
+                System.out.println("Throughput="+(attemptedRequests/sumLatency));
             } else {
                 System.out.println("no requests were attempted");
             }
