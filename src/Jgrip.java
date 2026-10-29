@@ -104,7 +104,7 @@ public class Jgrip{
                 {
                     System.out.println(entry.getKey() +"="+ entry.getValue());
                 }
-                System.out.println("LATENCY");gi
+                System.out.println("LATENCY");
                 System.out.println("Average=" + TimeUnit.NANOSECONDS.toMillis((long) (sumLatency / attemptedRequests)) + "ms");
                 System.out.println("Minimum=" + TimeUnit.NANOSECONDS.toMillis(min) + "ms");
                 System.out.println("Maximum=" + TimeUnit.NANOSECONDS.toMillis(max) + "ms");
